@@ -268,15 +268,15 @@ def update_question(question_id):
         title = request.form.get('title')
         description = request.form.get('description', '')
         question_type = request.form.get('question_type')
-        required = 'required' in request.form
+        is_required = 'required' in request.form
         order_index = int(request.form.get('order_index', 1))
         
         # Update question
         cursor.execute("""
         UPDATE questions 
-        SET title = %s, description = %s, question_type = %s, required = %s, order_index = %s, updated_at = NOW()
+        SET title = %s, question_type = %s, is_required = %s, order_index = %s, updated_at = NOW()
         WHERE id = %s
-        """, (title, description, question_type, required, order_index, question_id))
+        """, (title, question_type, is_required, order_index, question_id))
         
         # Handle options for multiple choice and dropdown questions
         if question_type in ['multiple_choice', 'dropdown']:
