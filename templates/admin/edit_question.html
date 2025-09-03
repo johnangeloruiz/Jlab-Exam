@@ -1,0 +1,214 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Question - Survey Application{% endblock %}
+
+{% block admin_content %}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Edit Question</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('questions_management') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Questions
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-edit me-2"></i>Question Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('update_question', question_id=question.id) }}">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Question Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           value="{{ question.title }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ question.description or '' }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="question_type" class="form-label">Question Type *</label>
+                                    <select class="form-select" id="question_type" name="question_type" required onchange="toggleOptions()">
+                                        <option value="multiple_choice" {% if question.question_type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
+                                        <option value="essay" {% if question.question_type == 'essay' %}selected{% endif %}>Essay (Text)</option>
+                                        <option value="rating" {% if question.question_type == 'rating' %}selected{% endif %}>Rating (1-5)</option>
+                                        <option value="yes_no" {% if question.question_type == 'yes_no' %}selected{% endif %}>Yes/No</option>
+                                        <option value="dropdown" {% if question.question_type == 'dropdown' %}selected{% endif %}>Dropdown</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="required" name="required" 
+                                               {% if question.required %}checked{% endif %}>
+                                        <label class="form-check-label" for="required">
+                                            Required Question
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="order_index" class="form-label">Order Index</label>
+                                    <input type="number" class="form-control" id="order_index" name="order_index" 
+                                           value="{{ question.order_index }}" min="1">
+                                </div>
+
+                                <!-- Options Section (for multiple choice and dropdown) -->
+                                <div id="options-section" style="display: none;">
+                                    <div class="mb-3">
+                                        <label class="form-label">Options</label>
+                                        <div id="options-container">
+                                            {% for option in options %}
+                                            <div class="option-item mb-2" data-option-id="{{ option.id }}">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" name="option_text[]" 
+                                                           value="{{ option.text }}" placeholder="Option text">
+                                                    <input type="hidden" name="option_id[]" value="{{ option.id }}">
+                                                    <input type="number" class="form-control" name="option_order[]" 
+                                                           value="{{ option.order_index }}" placeholder="Order" style="max-width: 100px;">
+                                                    <button type="button" class="btn btn-outline-danger" onclick="removeOption(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOption()">
+                                            <i class="fas fa-plus me-1"></i>Add Option
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ url_for('questions_management') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Update Question
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Question Info
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Question ID:</strong> {{ question.id }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Created:</strong> {{ question.created_at.strftime('%Y-%m-%d %H:%M') if question.created_at else 'N/A' }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Updated:</strong> {{ question.updated_at.strftime('%Y-%m-%d %H:%M') if question.updated_at else 'N/A' }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Total Responses:</strong> {{ question.total_responses if question.total_responses else 0 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Warning
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Note:</strong> Changing question type or options may affect existing responses. 
+                                    Consider creating a new question instead if you have many responses.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let optionCounter = 0;
+
+$(document).ready(function() {
+    toggleOptions();
+});
+
+function toggleOptions() {
+    const questionType = document.getElementById('question_type').value;
+    const optionsSection = document.getElementById('options-section');
+    
+    if (questionType === 'multiple_choice' || questionType === 'dropdown') {
+        optionsSection.style.display = 'block';
+    } else {
+        optionsSection.style.display = 'none';
+    }
+}
+
+function addOption() {
+    const container = document.getElementById('options-container');
+    const optionItem = document.createElement('div');
+    optionItem.className = 'option-item mb-2';
+    optionItem.setAttribute('data-option-id', 'new_' + optionCounter);
+    
+    optionItem.innerHTML = `
+        <div class="input-group">
+            <input type="text" class="form-control" name="option_text[]" placeholder="Option text">
+            <input type="hidden" name="option_id[]" value="new_${optionCounter}">
+            <input type="number" class="form-control" name="option_order[]" value="${optionCounter + 1}" placeholder="Order" style="max-width: 100px;">
+            <button type="button" class="btn btn-outline-danger" onclick="removeOption(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(optionItem);
+    optionCounter++;
+}
+
+function removeOption(button) {
+    const optionItem = button.closest('.option-item');
+    optionItem.remove();
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const questionType = document.getElementById('question_type').value;
+    const optionsSection = document.getElementById('options-section');
+    
+    if (questionType === 'multiple_choice' || questionType === 'dropdown') {
+        const optionInputs = document.querySelectorAll('input[name="option_text[]"]');
+        let hasValidOption = false;
+        
+        for (let input of optionInputs) {
+            if (input.value.trim()) {
+                hasValidOption = true;
+                break;
+            }
+        }
+        
+        if (!hasValidOption) {
+            e.preventDefault();
+            alert('Please add at least one option for multiple choice or dropdown questions.');
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

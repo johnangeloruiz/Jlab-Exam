@@ -1,0 +1,335 @@
+{% extends "admin/base.html" %}
+
+{% block title %}New Question - Survey Application{% endblock %}
+
+{% block admin_content %}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Create New Question</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{{ url_for('questions_management') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Questions
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="questionForm">
+                                <!-- Question Title -->
+                                <div class="mb-4">
+                                    <label for="questionTitle" class="form-label">
+                                        <i class="fas fa-question-circle me-2"></i>Question Title
+                                    </label>
+                                    <input type="text" class="form-control" id="questionTitle" name="title" 
+                                           placeholder="Enter your question here..." required>
+                                    <div class="form-text">This is the main text that respondents will see.</div>
+                                </div>
+
+                                <!-- Question Type -->
+                                <div class="mb-4">
+                                    <label for="questionType" class="form-label">
+                                        <i class="fas fa-list me-2"></i>Question Type
+                                    </label>
+                                    <select class="form-select" id="questionType" name="question_type" required>
+                                        <option value="">Select question type...</option>
+                                        <option value="multiple_choice">Multiple Choice</option>
+                                        <option value="essay">Essay (Text Response)</option>
+                                        <option value="rating">Rating Scale</option>
+                                        <option value="yes_no">Yes/No</option>
+                                        <option value="dropdown">Dropdown</option>
+                                    </select>
+                                </div>
+
+                                <!-- Options Section (for multiple choice and dropdown) -->
+                                <div id="optionsSection" class="mb-4" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-list-ul me-2"></i>Answer Options
+                                    </label>
+                                    <div id="optionsContainer">
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control option-input" placeholder="Option 1">
+                                            <button type="button" class="btn btn-outline-danger" onclick="removeOption(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control option-input" placeholder="Option 2" required>
+                                            <button type="button" class="btn btn-outline-danger" onclick="removeOption(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addOption()">
+                                        <i class="fas fa-plus me-1"></i>Add Option
+                                    </button>
+                                </div>
+
+                                <!-- Rating Scale Options -->
+                                <div id="ratingSection" class="mb-4" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-star me-2"></i>Rating Scale
+                                    </label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="minRating" class="form-label">Minimum Value</label>
+                                            <input type="number" class="form-control" id="minRating" value="1" min="0">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="maxRating" class="form-label">Maximum Value</label>
+                                            <input type="number" class="form-control" id="maxRating" value="5" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label for="ratingLabels" class="form-label">Labels (optional)</label>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" id="minLabel" placeholder="e.g., Poor">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" id="maxLabel" placeholder="e.g., Excellent">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Question Settings -->
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="isRequired" name="is_required" checked>
+                                        <label class="form-check-label" for="isRequired">
+                                            <i class="fas fa-exclamation-circle me-2"></i>Required Question
+                                        </label>
+                                    </div>
+                                    <div class="form-text">Respondents must answer this question to continue.</div>
+                                </div>
+
+                                <!-- Order Index -->
+                                <div class="mb-4">
+                                    <label for="orderIndex" class="form-label">
+                                        <i class="fas fa-sort me-2"></i>Question Order
+                                    </label>
+                                    <input type="number" class="form-control" id="orderIndex" name="order_index" value="0" min="0">
+                                    <div class="form-text">Lower numbers appear first in the survey.</div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Create Question
+                                    </button>
+                                    <a href="{{ url_for('questions_management') }}" class="btn btn-outline-secondary">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Panel -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-eye me-2"></i>Preview
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="questionPreview">
+                                <p class="text-muted">Select a question type to see preview...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Panel -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-question-circle me-2"></i>Question Types
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Multiple Choice:</strong>
+                                <small class="d-block text-muted">Respondents select one option from a list.</small>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Essay:</strong>
+                                <small class="d-block text-muted">Open-ended text response.</small>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Rating:</strong>
+                                <small class="d-block text-muted">Numeric rating scale (e.g., 1-5 stars).</small>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Yes/No:</strong>
+                                <small class="d-block text-muted">Simple binary choice.</small>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Dropdown:</strong>
+                                <small class="d-block text-muted">Compact list selection.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let optionCount = 2;
+
+document.getElementById('questionType').addEventListener('change', function() {
+    const type = this.value;
+    const optionsSection = document.getElementById('optionsSection');
+    const ratingSection = document.getElementById('ratingSection');
+    
+    // Hide all sections
+    optionsSection.style.display = 'none';
+    ratingSection.style.display = 'none';
+    
+    // Show relevant sections
+    if (type === 'multiple_choice' || type === 'dropdown') {
+        optionsSection.style.display = 'block';
+    } else if (type === 'rating') {
+        ratingSection.style.display = 'block';
+    }
+    
+    updatePreview();
+});
+
+document.getElementById('questionTitle').addEventListener('input', updatePreview);
+document.getElementById('questionType').addEventListener('change', updatePreview);
+
+function updatePreview() {
+    const title = document.getElementById('questionTitle').value || 'Your question here...';
+    const type = document.getElementById('questionType').value;
+    const preview = document.getElementById('questionPreview');
+    
+    let previewHTML = `<h6 class="fw-bold">${title}</h6>`;
+    
+    if (type === 'multiple_choice' || type === 'dropdown') {
+        previewHTML += '<div class="mt-3">';
+        const options = document.querySelectorAll('.option-input');
+        options.forEach((option, index) => {
+            if (option.value.trim()) {
+                previewHTML += `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" disabled>
+                        <label class="form-check-label">${option.value}</label>
+                    </div>
+                `;
+            }
+        });
+        previewHTML += '</div>';
+    } else if (type === 'essay') {
+        previewHTML += '<textarea class="form-control mt-3" rows="3" disabled placeholder="Your answer here..."></textarea>';
+    } else if (type === 'rating') {
+        const min = document.getElementById('minRating').value || 1;
+        const max = document.getElementById('maxRating').value || 5;
+        const minLabel = document.getElementById('minLabel').value;
+        const maxLabel = document.getElementById('maxLabel').value;
+        
+        previewHTML += '<div class="mt-3">';
+        previewHTML += `<div class="d-flex justify-content-between mb-2">`;
+        if (minLabel) previewHTML += `<small class="text-muted">${minLabel}</small>`;
+        if (maxLabel) previewHTML += `<small class="text-muted">${maxLabel}</small>`;
+        previewHTML += '</div>';
+        previewHTML += '<div class="d-flex gap-2">';
+        for (let i = min; i <= max; i++) {
+            previewHTML += `<button class="btn btn-outline-primary btn-sm" disabled>${i}</button>`;
+        }
+        previewHTML += '</div></div>';
+    } else if (type === 'yes_no') {
+        previewHTML += `
+            <div class="mt-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" disabled>
+                    <label class="form-check-label">Yes</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" disabled>
+                    <label class="form-check-label">No</label>
+                </div>
+            </div>
+        `;
+    }
+    
+    preview.innerHTML = previewHTML;
+}
+
+function addOption() {
+    optionCount++;
+    const container = document.getElementById('optionsContainer');
+    const newOption = document.createElement('div');
+    newOption.className = 'input-group mb-2';
+    newOption.innerHTML = `
+    <input type="text" class="form-control option-input" placeholder="Option ${optionCount}">
+    <button type="button" class="btn btn-outline-danger" onclick="removeOption(this)">
+        <i class="fas fa-trash"></i>
+    </button>
+`;
+    container.appendChild(newOption);
+    updatePreview();
+}
+
+function removeOption(button) {
+    const container = document.getElementById('optionsContainer');
+    if (container.children.length > 1) {
+        button.parentElement.remove();
+        updatePreview();
+    }
+}
+
+// Add event listeners to option inputs
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('option-input')) {
+        updatePreview();
+    }
+});
+
+// Form submission
+document.getElementById('questionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        title: formData.get('title'),
+        question_type: formData.get('question_type'),
+        is_required: formData.get('is_required') === 'on',
+        order_index: parseInt(formData.get('order_index')) || 0
+    };
+    
+    // Add options for multiple choice and dropdown
+    if (data.question_type === 'multiple_choice' || data.question_type === 'dropdown') {
+        const options = Array.from(document.querySelectorAll('.option-input'))
+            .map(input => input.value.trim())
+            .filter(value => value);
+        data.options = options;
+    }
+    
+    // Submit the form
+    fetch('/admin/questions/new', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/admin/questions';
+        } else {
+            alert('Error creating question: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating question');
+    });
+});
+</script>
+{% endblock %}

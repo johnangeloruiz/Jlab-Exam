@@ -1,0 +1,192 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - Survey Application{% endblock %}
+
+{% block admin_content %}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Admin Dashboard</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ url_for('new_question') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>New Question
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Questions
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-questions">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Total Responses
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-responses">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Completion Rate
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="completion-rate">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Active Surveys
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-surveys">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Recent Questions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="recent-questions">
+                                    <thead>
+                                        <tr>
+                                            <th>Question</th>
+                                            <th>Type</th>
+                                            <th>Responses</th>
+                                            <th>Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('new_question') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Add New Question
+                                </a>
+                                <a href="{{ url_for('questions_management') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-2"></i>Manage Questions
+                                </a>
+                                <a href="{{ url_for('analytics') }}" class="btn btn-outline-success">
+                                    <i class="fas fa-chart-bar me-2"></i>View Analytics
+                                </a>
+                                <a href="{{ url_for('take_survey') }}" class="btn btn-outline-info">
+                                    <i class="fas fa-eye me-2"></i>Preview Survey
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load dashboard statistics
+    loadDashboardStats();
+});
+
+function loadDashboardStats() {
+    // This would typically make AJAX calls to get real data
+    // For now, we'll simulate with static data
+    
+    setTimeout(function() {
+        $('#total-questions').text('12');
+        $('#total-responses').text('156');
+        $('#completion-rate').text('87%');
+        $('#active-surveys').text('3');
+        
+        // Load recent questions
+        loadRecentQuestions();
+    }, 1000);
+}
+
+function loadRecentQuestions() {
+    // This would make an AJAX call to get recent questions
+    // For now, we'll show a message
+    $('#recent-questions tbody').html(`
+        <tr>
+            <td colspan="4" class="text-center text-muted">
+                <i class="fas fa-info-circle me-2"></i>
+                No questions yet. <a href="{{ url_for('new_question') }}">Create your first question</a>
+            </td>
+        </tr>
+    `);
+}
+</script>
+{% endblock %}

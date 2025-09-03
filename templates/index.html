@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Survey Application{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Hero Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    <i class="fas fa-poll me-3"></i>Survey Application
+                </h1>
+                <p class="lead text-muted">
+                    Create, manage, and analyze surveys with our professional survey platform.
+                    Get insights from your audience with powerful analytics and reporting.
+                </p>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="row g-4">
+                <!-- Take Survey Card -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-clipboard-list fa-3x text-primary"></i>
+                            </div>
+                            <h4 class="card-title">Take Survey</h4>
+                            <p class="card-text text-muted">
+                                Participate in our surveys and share your opinions. 
+                                Your feedback helps us improve our services.
+                            </p>
+                            <a href="{{ url_for('take_survey') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-play me-2"></i>Start Survey
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Panel Card -->
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-cog fa-3x text-success"></i>
+                            </div>
+                            <h4 class="card-title">Admin Panel</h4>
+                            <p class="card-text text-muted">
+                                Manage questions, view analytics, and configure survey settings.
+                                Access powerful tools for survey management.
+                            </p>
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-success btn-lg">
+                                <i class="fas fa-tools me-2"></i>Admin Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h3 class="text-center mb-4">Features</h3>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-question-circle fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Multiple Question Types</h6>
+                            <small class="text-muted">Multiple choice, essay, rating, and more</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-bar fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Advanced Analytics</h6>
+                            <small class="text-muted">Real-time charts and detailed reports</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-mobile-alt fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Mobile Responsive</h6>
+                            <small class="text-muted">Works perfectly on all devices</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

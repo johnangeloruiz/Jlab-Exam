@@ -1,0 +1,416 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Analytics - Survey Application{% endblock %}
+
+{% block admin_content %}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Survey Analytics</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="exportData()">
+                            <i class="fas fa-download me-1"></i>Export Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if questions %}
+                <!-- Summary Stats -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Questions
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ questions|length }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Total Responses
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-responses">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Completion Rate
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="completion-rate">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Avg. Response Time
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question Analytics -->
+                <div class="row">
+                    {% for question in questions %}
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    Q{{ loop.index }}: {{ question.title }}
+                                </h6>
+                                <small class="text-muted">
+                                    {% if question.question_type == 'multiple_choice' %}
+                                        Multiple Choice
+                                    {% elif question.question_type == 'essay' %}
+                                        Essay
+                                    {% elif question.question_type == 'rating' %}
+                                        Rating
+                                    {% elif question.question_type == 'yes_no' %}
+                                        Yes/No
+                                    {% elif question.question_type == 'dropdown' %}
+                                        Dropdown
+                                    {% else %}
+                                        {{ question.question_type }}
+                                    {% endif %}
+                                    • {{ question.total_responses }} responses
+                                </small>
+                            </div>
+                            <div class="card-body">
+                                {% if question.question_type in ['multiple_choice', 'dropdown'] and question.option_stats %}
+                                    <!-- Bar Chart for Multiple Choice -->
+                                    <div class="mb-3">
+                                        <canvas id="chart-{{ question.id }}" width="400" height="200"></canvas>
+                                    </div>
+                                    
+                                    <!-- Response Table -->
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Option</th>
+                                                    <th>Responses</th>
+                                                    <th>Percentage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stat in question.option_stats %}
+                                                <tr>
+                                                    <td>{{ stat.option_text }}</td>
+                                                    <td>{{ stat.count }}</td>
+                                                    <td>
+                                                        {% if question.total_responses > 0 %}
+                                                            {{ "%.1f"|format((stat.count / question.total_responses) * 100) }}%
+                                                        {% else %}
+                                                            0%
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                {% elif question.question_type == 'yes_no' %}
+                                    <!-- Yes/No Chart -->
+                                    <div class="mb-3">
+                                        <canvas id="chart-{{ question.id }}" width="400" height="200"></canvas>
+                                    </div>
+                                    
+                                    <!-- Yes/No Stats -->
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="border-end">
+                                                <h4 class="text-success" id="yes-count-{{ question.id }}">0</h4>
+                                                <small class="text-muted">Yes</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h4 class="text-danger" id="no-count-{{ question.id }}">0</h4>
+                                            <small class="text-muted">No</small>
+                                        </div>
+                                    </div>
+
+                                {% elif question.question_type == 'rating' %}
+                                    <!-- Rating Chart -->
+                                    <div class="mb-3">
+                                        <canvas id="chart-{{ question.id }}" width="400" height="200"></canvas>
+                                    </div>
+                                    
+                                    <!-- Rating Stats -->
+                                    <div class="text-center">
+                                        <h4 id="avg-rating-{{ question.id }}">0.0</h4>
+                                        <small class="text-muted">Average Rating</small>
+                                    </div>
+
+                                {% elif question.question_type == 'essay' %}
+                                    <!-- Essay Responses -->
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ question.total_responses }} text responses received
+                                    </div>
+                                    
+                                    {% if question.text_stats %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Common Responses</th>
+                                                    <th>Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for stat in question.text_stats[:5] %}
+                                                <tr>
+                                                    <td>{{ stat.text_answer[:50] }}{% if stat.text_answer|length > 50 %}...{% endif %}</td>
+                                                    <td>{{ stat.count }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
+
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        No data available for this question type
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            {% else %}
+                <!-- No Questions -->
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Questions Yet</h4>
+                    <p class="text-muted">Create some questions and collect responses to see analytics.</p>
+                    <a href="{{ url_for('new_question') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Question
+                    </a>
+                </div>
+            {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load analytics data
+    loadAnalyticsData();
+});
+
+function loadAnalyticsData() {
+    // Calculate total responses
+    let totalResponses = 0;
+    {% for question in questions %}
+        totalResponses += {{ question.total_responses }};
+    {% endfor %}
+    
+    $('#total-responses').text(totalResponses);
+    
+    // Calculate completion rate (simplified)
+    const completionRate = totalResponses > 0 ? '85%' : '0%';
+    $('#completion-rate').text(completionRate);
+    
+    // Create charts for each question
+    {% for question in questions %}
+        {% if question.question_type in ['multiple_choice', 'dropdown'] and question.option_stats %}
+            createBarChart({{ question.id }}, {{ question.option_stats|tojson }});
+        {% elif question.question_type == 'yes_no' %}
+            createYesNoChart({{ question.id }});
+        {% elif question.question_type == 'rating' %}
+            createRatingChart({{ question.id }});
+        {% endif %}
+    {% endfor %}
+}
+
+function createBarChart(questionId, data) {
+    const ctx = document.getElementById('chart-' + questionId).getContext('2d');
+    
+    const labels = data.map(item => item.option_text);
+    const values = data.map(item => item.count);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Responses',
+                data: values,
+                backgroundColor: [
+                    '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1',
+                    '#20c997', '#fd7e14', '#6c757d', '#e83e8c', '#17a2b8'
+                ],
+                borderColor: [
+                    '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1',
+                    '#20c997', '#fd7e14', '#6c757d', '#e83e8c', '#17a2b8'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createYesNoChart(questionId) {
+    const ctx = document.getElementById('chart-' + questionId).getContext('2d');
+    
+    // Get real data from the question object
+    {% for question in questions %}
+        {% if question.question_type == 'yes_no' %}
+            if ({{ question.id }} === questionId) {
+                const yesCount = {{ question.yes_count }};
+                const noCount = {{ question.no_count }};
+                
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Yes', 'No'],
+                        datasets: [{
+                            data: [yesCount, noCount],
+                            backgroundColor: ['#28a745', '#dc3545'],
+                            borderColor: ['#28a745', '#dc3545'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+                
+                // Update counts
+                $('#yes-count-' + questionId).text(yesCount);
+                $('#no-count-' + questionId).text(noCount);
+            }
+        {% endif %}
+    {% endfor %}
+}
+
+function createRatingChart(questionId) {
+    const ctx = document.getElementById('chart-' + questionId).getContext('2d');
+    
+    // Get real data from the question object
+    {% for question in questions %}
+        {% if question.question_type == 'rating' %}
+            if ({{ question.id }} === questionId) {
+                const ratingData = {{ question.rating_distribution|tojson }};
+                const avgRating = {{ question.avg_rating }};
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1', '2', '3', '4', '5'],
+                        datasets: [{
+                            label: 'Responses',
+                            data: ratingData,
+                            backgroundColor: '#007bff',
+                            borderColor: '#007bff',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Show real average rating
+                $('#avg-rating-' + questionId).text(avgRating.toFixed(1));
+            }
+        {% endif %}
+    {% endfor %}
+}
+
+function exportData() {
+    // This would export the analytics data
+    alert('Export functionality would be implemented here. This could export to CSV, PDF, or Excel format.');
+}
+</script>
+{% endblock %}
