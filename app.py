@@ -3,6 +3,12 @@ import mysql.connector
 from datetime import datetime
 import uuid
 import json
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+import os
+
+# Load variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'
@@ -14,6 +20,21 @@ DB_CONFIG = {
     'password': '',
     'database': 'survey_app'
 }
+# Mail configuration for SendGrid
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = os.getenv("GMAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("GMAIL_APP_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("GMAIL_USERNAME")
+
+
+
+
+
+mail = Mail(app)
 
 def get_db_connection():
     try:
@@ -435,7 +456,9 @@ def take_survey():
 def submit_survey():
     """Submit survey responses"""
     data = request.get_json()
-    
+    responses = data.get('responses', [])
+    respondent_email = data.get('email')  # You need to collect this in your form!
+
     conn = get_db_connection()
     if not conn:
         return jsonify({'success': False, 'message': 'Database connection error'})
@@ -444,7 +467,8 @@ def submit_survey():
     respondent_id = str(uuid.uuid4())
     
     try:
-        for response in data['responses']:
+        # Save responses in DB
+        for response in responses:
             question_id = response['question_id']
             option_id = response.get('option_id')
             text_answer = response.get('text_answer')
@@ -455,6 +479,37 @@ def submit_survey():
             """, (question_id, option_id, text_answer, respondent_id))
         
         conn.commit()
+
+        # Compose answers for email
+        answers_text = ""
+        for resp in responses:
+            q_id = resp.get('question_id')
+            option_id = resp.get('option_id')
+            text_answer = resp.get('text_answer')
+            answers_text += f"Question ID: {q_id}\n"
+            if option_id:
+                answers_text += f"Selected Option ID: {option_id}\n"
+            if text_answer:
+                answers_text += f"Answer: {text_answer}\n"
+            answers_text += "\n"
+
+        # Send confirmation email using Gmail SMTP via Flask-Mail
+        if respondent_email:
+            try:
+                msg = Message(
+                    subject="Survey Received - Thank You!",
+                    recipients=[respondent_email],
+                    body = (
+                            "Thank you for completing the survey!\n\n"
+                            "Your responses have been recorded successfully.\n\n"
+                            "This will help us improve and provide better services in the future.\n\n"
+                            "Best regards,\nThe Survey Team" )
+                            
+                )
+                mail.send(msg)
+            except Exception as e:
+                print(f"Gmail email sending failed: {e}")
+
         return jsonify({'success': True, 'respondent_id': respondent_id})
         
     except mysql.connector.Error as err:
@@ -463,6 +518,19 @@ def submit_survey():
     finally:
         cursor.close()
         conn.close()
+
+@app.route('/send-test-email')
+def send_test_email():
+    try:
+        msg = Message(
+            subject="Test Email from Flask + Gmail",
+            recipients=["angelo.ruiz44444@gmail.com"],  # test with your inbox
+            body="This is a test email from Flask-Mail using Gmail SMTP."
+        )
+        mail.send(msg)
+        return "Test email sent successfully!"
+    except Exception as e:
+        return f"Email failed: {e}"
 
 @app.route('/admin/analytics')
 def analytics():

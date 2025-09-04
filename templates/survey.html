@@ -15,131 +15,132 @@
             </div>
 
             {% if questions %}
-                <!-- Progress Bar -->
-                <div class="card mb-4">
+            <!-- Progress Bar -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Progress</span>
+                        <span class="text-muted" id="progressText">0 of {{ questions|length }} questions</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" id="progressBar" style="width: 0%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Survey Form -->
+            <form id="surveyForm">
+                <!-- Respondent Email -->
+                <div class="mb-4">
+                    <label for="respondentEmail" class="form-label">Your Email (for confirmation):</label>
+                    <input type="email" class="form-control" id="respondentEmail" name="email" required>
+                </div>
+
+                {% for question in questions %}
+                <div class="card mb-4 question-card" data-question-id="{{ question.id }}" style="display: none;">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold">Progress</span>
-                            <span class="text-muted" id="progressText">0 of {{ questions|length }} questions</span>
+                        <!-- Question Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">
+                                <span class="badge bg-primary me-2">Q{{ loop.index }}</span>
+                                {{ question.title }}
+                            </h5>
+                            {% if question.is_required %}
+                            <span class="badge bg-danger">Required</span>
+                            {% endif %}
                         </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary" role="progressbar" id="progressBar" style="width: 0%"></div>
+
+                        <!-- Question Content -->
+                        <div class="question-content">
+                            {% if question.question_type == 'multiple_choice' %}
+                            <div class="options-container">
+                                {% for option in question.options %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                                        id="option_{{ option.id }}" value="{{ option.id }}" {% if question.is_required
+                                        %}required{% endif %}>
+                                    <label class="form-check-label" for="option_{{ option.id }}">
+                                        {{ option.text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% elif question.question_type == 'dropdown' %}
+                            <select class="form-select" name="question_{{ question.id }}" {% if question.is_required
+                                %}required{% endif %}>
+                                <option value="">Select an option...</option>
+                                {% for option in question.options %}
+                                <option value="{{ option.id }}">{{ option.text }}</option>
+                                {% endfor %}
+                            </select>
+
+                            {% elif question.question_type == 'essay' %}
+                            <textarea class="form-control" name="question_{{ question.id }}" rows="4"
+                                placeholder="Please enter your answer here..." {% if question.is_required %}required{%
+                                endif %}></textarea>
+
+                            {% elif question.question_type == 'rating' %}
+                            <div class="rating-container">
+                                <div class="d-flex justify-content-center gap-2 mb-3">
+                                    {% for i in range(1, 6) %}
+                                    <button type="button" class="btn btn-outline-primary rating-btn"
+                                        data-rating="{{ i }}" data-question="{{ question.id }}">
+                                        {{ i }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="question_{{ question.id }}" {% if question.is_required
+                                    %}required{% endif %}>
+                            </div>
+
+                            {% elif question.question_type == 'yes_no' %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                                    id="yes_{{ question.id }}" value="yes" {% if question.is_required %}required{% endif
+                                    %}>
+                                <label class="form-check-label" for="yes_{{ question.id }}">
+                                    <i class="fas fa-check text-success me-2"></i>Yes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}"
+                                    id="no_{{ question.id }}" value="no" {% if question.is_required %}required{% endif
+                                    %}>
+                                <label class="form-check-label" for="no_{{ question.id }}">
+                                    <i class="fas fa-times text-danger me-2"></i>No
+                                </label>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+                {% endfor %}
 
-                <!-- Survey Form -->
-                <form id="surveyForm">
-                    {% for question in questions %}
-                    <div class="card mb-4 question-card" data-question-id="{{ question.id }}" style="display: none;">
-                        <div class="card-body">
-                            <!-- Question Header -->
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title mb-0">
-                                    <span class="badge bg-primary me-2">Q{{ loop.index }}</span>
-                                    {{ question.title }}
-                                </h5>
-                                {% if question.is_required %}
-                                    <span class="badge bg-danger">Required</span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Question Content -->
-                            <div class="question-content">
-                                {% if question.question_type == 'multiple_choice' %}
-                                    <div class="options-container">
-                                        {% for option in question.options %}
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" 
-                                                   name="question_{{ question.id }}" 
-                                                   id="option_{{ option.id }}" 
-                                                   value="{{ option.id }}"
-                                                   {% if question.is_required %}required{% endif %}>
-                                            <label class="form-check-label" for="option_{{ option.id }}">
-                                                {{ option.text }}
-                                            </label>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-
-                                {% elif question.question_type == 'dropdown' %}
-                                    <select class="form-select" name="question_{{ question.id }}" 
-                                            {% if question.is_required %}required{% endif %}>
-                                        <option value="">Select an option...</option>
-                                        {% for option in question.options %}
-                                        <option value="{{ option.id }}">{{ option.text }}</option>
-                                        {% endfor %}
-                                    </select>
-
-                                {% elif question.question_type == 'essay' %}
-                                    <textarea class="form-control" name="question_{{ question.id }}" 
-                                              rows="4" placeholder="Please enter your answer here..."
-                                              {% if question.is_required %}required{% endif %}></textarea>
-
-                                {% elif question.question_type == 'rating' %}
-                                    <div class="rating-container">
-                                        <div class="d-flex justify-content-center gap-2 mb-3">
-                                            {% for i in range(1, 6) %}
-                                            <button type="button" class="btn btn-outline-primary rating-btn" 
-                                                    data-rating="{{ i }}" data-question="{{ question.id }}">
-                                                {{ i }}
-                                            </button>
-                                            {% endfor %}
-                                        </div>
-                                        <input type="hidden" name="question_{{ question.id }}" 
-                                               {% if question.is_required %}required{% endif %}>
-                                    </div>
-
-                                {% elif question.question_type == 'yes_no' %}
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" 
-                                               name="question_{{ question.id }}" 
-                                               id="yes_{{ question.id }}" 
-                                               value="yes"
-                                               {% if question.is_required %}required{% endif %}>
-                                        <label class="form-check-label" for="yes_{{ question.id }}">
-                                            <i class="fas fa-check text-success me-2"></i>Yes
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" 
-                                               name="question_{{ question.id }}" 
-                                               id="no_{{ question.id }}" 
-                                               value="no"
-                                               {% if question.is_required %}required{% endif %}>
-                                        <label class="form-check-label" for="no_{{ question.id }}">
-                                            <i class="fas fa-times text-danger me-2"></i>No
-                                        </label>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-
-                    <!-- Navigation Buttons -->
-                    <div class="d-flex justify-content-between mb-5">
-                        <button type="button" class="btn btn-outline-secondary" id="prevBtn" style="display: none;">
-                            <i class="fas fa-arrow-left me-2"></i>Previous
-                        </button>
-                        <button type="button" class="btn btn-primary" id="nextBtn">
-                            Next<i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-                        <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
-                            <i class="fas fa-check me-2"></i>Submit Survey
-                        </button>
-                    </div>
-                </form>
+                <!-- Navigation Buttons -->
+                <div class="d-flex justify-content-between mb-5">
+                    <button type="button" class="btn btn-outline-secondary" id="prevBtn" style="display: none;">
+                        <i class="fas fa-arrow-left me-2"></i>Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn">
+                        Next<i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                        <i class="fas fa-check me-2"></i>Submit Survey
+                    </button>
+                </div>
+            </form>
             {% else %}
-                <!-- No Questions Available -->
-                <div class="text-center py-5">
-                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                    <h4 class="text-muted">No Questions Available</h4>
-                    <p class="text-muted">There are currently no questions in this survey. Please check back later.</p>
-                    <a href="{{ url_for('index') }}" class="btn btn-primary">
-                        <i class="fas fa-home me-2"></i>Return Home
-                    </a>
-                </div>
+            <!-- No Questions Available -->
+            <div class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h4 class="text-muted">No Questions Available</h4>
+                <p class="text-muted">There are currently no questions in this survey. Please check back later.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Return Home
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -174,190 +175,198 @@
 
 {% block extra_js %}
 <script>
-let currentQuestion = 0;
-const totalQuestions = {{ questions|length }};
-const questions = document.querySelectorAll('.question-card');
+    let currentQuestion = 0;
+    const totalQuestions = {{ questions| length }};
+    const questions = document.querySelectorAll('.question-card');
 
-// Show first question
-if (questions.length > 0) {
-    showQuestion(0);
-    updateProgress();
-}
-
-function showQuestion(index) {
-    // Hide all questions
-    questions.forEach(q => q.style.display = 'none');
-    
-    // Show current question
-    if (questions[index]) {
-        questions[index].style.display = 'block';
+    // Show first question
+    if (questions.length > 0) {
+        showQuestion(0);
+        updateProgress();
     }
-    
-    // Update navigation buttons
-    document.getElementById('prevBtn').style.display = index > 0 ? 'block' : 'none';
-    document.getElementById('nextBtn').style.display = index < totalQuestions - 1 ? 'block' : 'none';
-    document.getElementById('submitBtn').style.display = index === totalQuestions - 1 ? 'block' : 'none';
-    
-    currentQuestion = index;
-    updateProgress();
-}
 
-function updateProgress() {
-    const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-    document.getElementById('progressBar').style.width = progress + '%';
-    document.getElementById('progressText').textContent = `${currentQuestion + 1} of ${totalQuestions} questions`;
-}
+    function showQuestion(index) {
+        // Hide all questions
+        questions.forEach(q => q.style.display = 'none');
 
-// Navigation buttons
-document.getElementById('nextBtn').addEventListener('click', function() {
-    if (validateCurrentQuestion()) {
-        if (currentQuestion < totalQuestions - 1) {
-            showQuestion(currentQuestion + 1);
+        // Show current question
+        if (questions[index]) {
+            questions[index].style.display = 'block';
         }
-    }
-});
 
-document.getElementById('prevBtn').addEventListener('click', function() {
-    if (currentQuestion > 0) {
-        showQuestion(currentQuestion - 1);
-    }
-});
+        // Update navigation buttons
+        document.getElementById('prevBtn').style.display = index > 0 ? 'block' : 'none';
+        document.getElementById('nextBtn').style.display = index < totalQuestions - 1 ? 'block' : 'none';
+        document.getElementById('submitBtn').style.display = index === totalQuestions - 1 ? 'block' : 'none';
 
-// Rating buttons
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('rating-btn')) {
-        const rating = e.target.dataset.rating;
-        const questionId = e.target.dataset.question;
-        
-        // Update visual state
-        const container = e.target.closest('.rating-container');
-        const buttons = container.querySelectorAll('.rating-btn');
-        buttons.forEach((btn, index) => {
-            if (index < rating) {
-                btn.classList.remove('btn-outline-primary');
-                btn.classList.add('btn-primary');
-            } else {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-primary');
+        currentQuestion = index;
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressText').textContent = `${currentQuestion + 1} of ${totalQuestions} questions`;
+    }
+
+    // Navigation buttons
+    document.getElementById('nextBtn').addEventListener('click', function () {
+        if (validateCurrentQuestion()) {
+            if (currentQuestion < totalQuestions - 1) {
+                showQuestion(currentQuestion + 1);
             }
-        });
-        
-        // Update hidden input
-        const hiddenInput = container.querySelector('input[type="hidden"]');
-        hiddenInput.value = rating;
-    }
-});
-
-function validateCurrentQuestion() {
-    const currentCard = questions[currentQuestion];
-    const questionId = currentCard.dataset.questionId;
-    
-    // Check if this question is required
-    const requiredInputs = currentCard.querySelectorAll('[required]');
-    if (requiredInputs.length === 0) {
-        return true; // Question is not required
-    }
-    
-    // For radio buttons, check if any in the group is selected
-    const radioInputs = currentCard.querySelectorAll(`input[type="radio"][name="question_${questionId}"]`);
-    if (radioInputs.length > 0) {
-        const isRadioSelected = Array.from(radioInputs).some(radio => radio.checked);
-        if (!isRadioSelected) {
-            alert('Please answer this question before continuing.');
-            return false;
         }
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', function () {
+        if (currentQuestion > 0) {
+            showQuestion(currentQuestion - 1);
+        }
+    });
+
+    // Rating buttons
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('rating-btn')) {
+            const rating = e.target.dataset.rating;
+            const questionId = e.target.dataset.question;
+
+            // Update visual state
+            const container = e.target.closest('.rating-container');
+            const buttons = container.querySelectorAll('.rating-btn');
+            buttons.forEach((btn, index) => {
+                if (index < rating) {
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-primary');
+                } else {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-outline-primary');
+                }
+            });
+
+            // Update hidden input
+            const hiddenInput = container.querySelector('input[type="hidden"]');
+            hiddenInput.value = rating;
+        }
+    });
+
+    function validateCurrentQuestion() {
+        const currentCard = questions[currentQuestion];
+        const questionId = currentCard.dataset.questionId;
+
+        // Check if this question is required
+        const requiredInputs = currentCard.querySelectorAll('[required]');
+        if (requiredInputs.length === 0) {
+            return true; // Question is not required
+        }
+
+        // For radio buttons, check if any in the group is selected
+        const radioInputs = currentCard.querySelectorAll(`input[type="radio"][name="question_${questionId}"]`);
+        if (radioInputs.length > 0) {
+            const isRadioSelected = Array.from(radioInputs).some(radio => radio.checked);
+            if (!isRadioSelected) {
+                alert('Please answer this question before continuing.');
+                return false;
+            }
+            return true;
+        }
+
+        // For other input types (select, textarea, hidden)
+        for (let input of requiredInputs) {
+            if (input.type === 'hidden') {
+                // For rating questions, check if hidden input has a value
+                if (!input.value) {
+                    alert('Please answer this question before continuing.');
+                    return false;
+                }
+            } else if (input.tagName === 'SELECT') {
+                // For dropdown questions
+                if (!input.value) {
+                    input.focus();
+                    alert('Please answer this question before continuing.');
+                    return false;
+                }
+            } else if (input.tagName === 'TEXTAREA') {
+                // For essay questions
+                if (!input.value.trim()) {
+                    input.focus();
+                    alert('Please answer this question before continuing.');
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
-    
-    // For other input types (select, textarea, hidden)
-    for (let input of requiredInputs) {
-        if (input.type === 'hidden') {
-            // For rating questions, check if hidden input has a value
-            if (!input.value) {
-                alert('Please answer this question before continuing.');
-                return false;
-            }
-        } else if (input.tagName === 'SELECT') {
-            // For dropdown questions
-            if (!input.value) {
-                input.focus();
-                alert('Please answer this question before continuing.');
-                return false;
-            }
-        } else if (input.tagName === 'TEXTAREA') {
-            // For essay questions
-            if (!input.value.trim()) {
-                input.focus();
-                alert('Please answer this question before continuing.');
-                return false;
-            }
-        }
-    }
-    
-    return true;
-}
 
-// Form submission
-document.getElementById('surveyForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    if (!validateCurrentQuestion()) {
-        return;
-    }
-    
-    // Collect all responses
-    const responses = [];
-    const formData = new FormData(this);
-    
-    questions.forEach(question => {
-        const questionId = question.dataset.questionId;
-        const inputs = question.querySelectorAll('input, select, textarea');
-        
-        for (let input of inputs) {
-            if (input.type === 'radio' && input.checked) {
-                responses.push({
-                    question_id: parseInt(questionId),
-                    option_id: input.value === 'yes' || input.value === 'no' ? null : parseInt(input.value),
-                    text_answer: input.value === 'yes' || input.value === 'no' ? input.value : null
-                });
-            } else if (input.type === 'hidden' && input.value) {
-                responses.push({
-                    question_id: parseInt(questionId),
-                    option_id: null,
-                    text_answer: input.value
-                });
-            } else if ((input.tagName === 'SELECT' || input.tagName === 'TEXTAREA') && input.value) {
-                responses.push({
-                    question_id: parseInt(questionId),
-                    option_id: input.tagName === 'SELECT' ? parseInt(input.value) : null,
-                    text_answer: input.tagName === 'TEXTAREA' ? input.value : null
-                });
+    // Form submission
+    document.getElementById('surveyForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!validateCurrentQuestion()) {
+            return;
+        }
+
+        // Collect all responses
+        const responses = [];
+        const formData = new FormData(this);
+
+        questions.forEach(question => {
+            const questionId = question.dataset.questionId;
+            const inputs = question.querySelectorAll('input, select, textarea');
+
+            for (let input of inputs) {
+                if (input.type === 'radio' && input.checked) {
+                    responses.push({
+                        question_id: parseInt(questionId),
+                        option_id: input.value === 'yes' || input.value === 'no' ? null : parseInt(input.value),
+                        text_answer: input.value === 'yes' || input.value === 'no' ? input.value : null
+                    });
+                } else if (input.type === 'hidden' && input.value) {
+                    responses.push({
+                        question_id: parseInt(questionId),
+                        option_id: null,
+                        text_answer: input.value
+                    });
+                } else if ((input.tagName === 'SELECT' || input.tagName === 'TEXTAREA') && input.value) {
+                    responses.push({
+                        question_id: parseInt(questionId),
+                        option_id: input.tagName === 'SELECT' ? parseInt(input.value) : null,
+                        text_answer: input.tagName === 'TEXTAREA' ? input.value : null
+                    });
+                }
             }
-        }
+        });
+
+        // ✅ Collect email correctly
+        const email = document.getElementById('respondentEmail').value;
+
+        // Submit responses
+        fetch('/survey/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,          // include email
+                responses: responses   // include responses
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('responseId').textContent = data.respondent_id.substring(0, 8) + '...';
+                    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+                } else {
+                    alert('Error submitting survey: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting survey');
+            });
+
     });
-    
-    // Submit responses
-    fetch('/survey/submit', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ responses: responses })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('responseId').textContent = data.respondent_id.substring(0, 8) + '...';
-            const modal = new bootstrap.Modal(document.getElementById('successModal'));
-            modal.show();
-        } else {
-            alert('Error submitting survey: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error submitting survey');
-    });
-});
+
 </script>
 {% endblock %}
