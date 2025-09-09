@@ -313,8 +313,8 @@ def update_question(question_id):
                     if option_id.startswith('new_'):
                         # Add new option
                         cursor.execute("""
-                        INSERT INTO options (question_id, text, order_index, created_at, updated_at)
-                        VALUES (%s, %s, %s, NOW(), NOW())
+                        INSERT INTO options (question_id, text, order_index, updated_at)
+                        VALUES (%s, %s, %s, NOW())
                         """, (question_id, option_text.strip(), int(option_order) if option_order else i + 1))
                     else:
                         # Update existing option
