@@ -15,11 +15,13 @@ app.secret_key = 'your-secret-key-change-this'
 
 # Database configuration
 DB_CONFIG = {
-    'host': 'localhost',
+    'host': 'mysql.railway.internal',
     'user': 'root',
-    'password': '',
-    'database': 'survey_app'
+    'password': 'jWkKqGzliifXGJuYsskPgrtJLldzcKXD',
+    'database': 'railway',
+    'port': 3306
 }
+
 # Mail configuration for SendGrid
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
